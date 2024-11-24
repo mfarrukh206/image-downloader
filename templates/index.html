@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Downloader</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+        .background-slideshow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+        }
+        .container {
+            background-color: #f8f8f885;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            max-width: 800px;
+            margin: 100px auto;
+        }
+        h1 {
+            color: #007bff;
+            font-weight: 700;
+        }
+        .preview-img {
+            max-width: 200px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        .preview-img:hover {
+            transform: scale(1.05);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 50px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 10px rgba(0, 91, 187, 0.3);
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        .btn-paste, .btn-clear {
+            font-size: 16px;
+            margin-right: 5px;
+        }
+    </style>
+    <script>
+        let slideshowInterval;
+
+        function startSlideshow() {
+            let index = 0;
+            const slideshowImages = [
+                'https://r4.wallpaperflare.com/wallpaper/12/1008/45/earth-4k-best-desktop-download-wallpaper-b876cd2860b07c48b03ca18e6852943a.jpg',
+                'https://r4.wallpaperflare.com/wallpaper/513/292/11/gradient-abstract-hd-4k-wallpaper-e846cdf85000ec0870cc012e9822d47a.jpg',
+                'https://r4.wallpaperflare.com/wallpaper/576/838/565/spiderman-4k-artwork-hd-wallpaper-dfc639c808e546faa4412b5193991b3e.jpg',
+                'https://r4.wallpaperflare.com/wallpaper/322/315/802/windows-10-red-in-4k-wallpaper-2d056d764dab08d6c4ec053900439d18.jpg',
+                'https://r4.wallpaperflare.com/wallpaper/763/641/316/ios-11-4k-windows-wallpaper-95ec619c469aed6bb4e11db24e0fc557.jpg'
+            ];
+            document.querySelector('.background-slideshow').style.backgroundImage = `url(${slideshowImages[index]})`;
+            slideshowInterval = setInterval(() => {
+                index = (index + 1) % slideshowImages.length;
+                document.querySelector('.background-slideshow').style.backgroundImage = `url(${slideshowImages[index]})`;
+            }, 3000);
+        }
+
+        function setBackgroundImage(url) {
+            clearInterval(slideshowInterval);
+            document.querySelector('.background-slideshow').style.backgroundImage = `url(${url})`;
+        }
+
+        function onUrlInput() {
+            const input = document.getElementById('image_urls').value.trim();
+            const firstUrl = input.split(/\n/)[0];
+            
+            if (firstUrl) {
+                setBackgroundImage(firstUrl);
+                updatePreviewImage(firstUrl);
+            } else {
+                startSlideshow();
+                clearPreviewImage();
+            }
+        }
+
+        function updatePreviewImage(url) {
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = url;
+            img.classList.add('preview-img', 'img-fluid');
+            img.alt = 'Preview Image';
+            img.onerror = () => img.remove();
+            previewContainer.appendChild(img);
+        }
+
+        function clearPreviewImage() {
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.innerHTML = '';
+        }
+
+        function pasteUrl() {
+            navigator.clipboard.readText().then(text => {
+                document.getElementById('image_urls').value = text;
+                onUrlInput();
+            }).catch(err => {
+                console.error('Failed to read clipboard contents: ', err);
+            });
+        }
+
+        function clearTextarea() {
+            document.getElementById('image_urls').value = '';
+            clearPreviewImage();
+            startSlideshow();
+        }
+
+        function validateForm(event) {
+            const imageUrlTextarea = document.getElementById('image_urls').value.trim();
+            if (!imageUrlTextarea) {
+                event.preventDefault();  // Prevent form submission
+                alert("Please paste an image URL before downloading.");  // Show alert popup
+            }
+        }
+
+        window.onload = startSlideshow;
+    </script>
+</head>
+<body>
+    <div class="background-slideshow"></div>
+    <div class="container mt-5">
+        <div class="text-center mb-4">
+            <h1>Image Downloader</h1>
+            <p class="lead">Paste your image URLs below and download them easily!</p>
+        </div>
+        <form method="POST" class="mb-4" onsubmit="validateForm(event)">
+            <div class="form-group">
+                <label for="image_urls" class="font-weight-bold">Enter Image URLs (one per line):</label>
+                <textarea id="image_urls" name="image_urls" class="form-control mb-3" rows="3" oninput="onUrlInput()"
+                    placeholder="https://example.com/image1.jpg"></textarea>
+                <button type="button" class="btn btn-outline-primary btn-paste" onclick="pasteUrl()">
+                    <i class="fas fa-paste"></i> Paste URL
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-clear" onclick="clearTextarea()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-download"></i> Download Images
+            </button>
+        </form>
+        <h3 class="mt-4">Preview:</h3>
+        <div id="preview-container" class="d-flex flex-wrap mb-4 justify-content-center"></div>
+    </div>
+</body>
+</html>
